@@ -17,6 +17,7 @@ class SiteMap implements Contract\File
 
     protected $group;
     protected $lastModified;
+    protected $siteMapIndex;
 
     /**
      * Item constructor.
@@ -27,7 +28,7 @@ class SiteMap implements Contract\File
      * @param string $name
      * @param string|DateTimeInterface $lastModified
      */
-    public function __construct(int $linksCount, string $group, Path $path, string $name, DateTimeInterface $lastModified = null)
+    public function __construct(int $linksCount, string $group, Path $path, string $name, ?DateTimeInterface $lastModified = null)
     {
         $this->traitConstructor($linksCount, $path, $name);
 
@@ -55,10 +56,15 @@ class SiteMap implements Contract\File
         return $this;
     }
 
-    public function changeSiteMapIndexFlag(bool $bool): Contract\File
+    public function changeIndex(SiteMapIndex $siteMapIndex): Contract\File
     {
-        $this->hasSiteMapIndex = $bool;
+        $this->siteMapIndex = $siteMapIndex;
 
         return $this;
+    }
+
+    public function index(): ?SiteMapIndex
+    {
+        return $this->siteMapIndex;
     }
 }

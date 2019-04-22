@@ -12,7 +12,7 @@ class Priority
 
     public function __construct(float $value)
     {
-        if ($value < 0 && $value > 1) {
+        if ($value < 0 || $value > 1) {
             throw new InvalidArgumentException(sprintf('Priority must be a number between 0 and 1, %f provided', $value));
         }
 

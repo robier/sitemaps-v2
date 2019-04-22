@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Robier\SiteMaps;
 
+use InvalidArgumentException;
+
 class Path
 {
     protected $path;
@@ -15,7 +17,7 @@ class Path
         $this->url = rtrim($url, '/') . '/';
 
         if (!is_dir($this->path)) {
-            throw new \InvalidArgumentException('Path must point to existing directory');
+            throw new InvalidArgumentException('Path must point to existing directory');
         }
     }
 

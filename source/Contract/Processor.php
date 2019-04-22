@@ -9,5 +9,5 @@ use Iterator;
 
 interface Processor
 {
-    public function apply(Iterator $items, string $group): Generator;
+    public function apply(Iterator $items): Generator;
 }

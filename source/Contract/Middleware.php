@@ -8,5 +8,5 @@ use Iterator;
 
 interface Middleware
 {
-    public function apply(Iterator $iterator, string $group): Iterator;
+    public function apply(Iterator $iterator): Iterator;
 }

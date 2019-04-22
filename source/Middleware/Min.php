@@ -14,7 +14,7 @@ class Min implements Contract\Middleware
         $this->min = $min;
     }
 
-    public function apply(Iterator $iterator, string $group): Iterator
+    public function apply(Iterator $iterator): Iterator
     {
         $count = 1;
         $savedItems = [];
@@ -28,7 +28,6 @@ class Min implements Contract\Middleware
 
             if (!empty($savedItems)) {
                 yield from $savedItems;
-
                 $savedItems = []; // free memory
             }
 

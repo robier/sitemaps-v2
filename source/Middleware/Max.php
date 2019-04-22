@@ -14,7 +14,7 @@ class Max implements Contract\Middleware
         $this->max = $max;
     }
 
-    public function apply(Iterator $iterator, string $group): Iterator
+    public function apply(Iterator $iterator): Iterator
     {
         $count = 0;
         foreach($iterator as $item){

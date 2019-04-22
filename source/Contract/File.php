@@ -18,7 +18,5 @@ interface File extends Countable
 
     public function fullUrl(): string;
 
-    public function hasSiteMapIndex(): bool;
-
     public function changeName(string $name): self;
 }

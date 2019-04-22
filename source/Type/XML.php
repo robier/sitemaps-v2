@@ -18,18 +18,20 @@ class XML extends Base
 
     protected $indent;
     protected $dateFormat;
+    protected $styleSheet;
 
-    public function __construct(string $dateFormat = 'Y-m-d', bool $indent = true)
+    public function __construct(string $dateFormat = 'Y-m-d', bool $indent = true, ?string $styleSheet = null)
     {
         parent::__construct();
 
         $this->dateFormat = $dateFormat;
         $this->indent = $indent;
+        $this->styleSheet = $styleSheet;
     }
 
     protected function generateFile(string $fullPath, string $group, Iterator $chunk): int
     {
-        $xml = $this->XMLOpen($fullPath, $this->indent);
+        $xml = $this->XMLOpen($fullPath, $this->indent, $this->styleSheet);
 
         $xml->startElement('urlset');
         $xml->writeAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
@@ -40,16 +42,16 @@ class XML extends Base
             $xml->startElement('url');
             $xml->writeElement('loc', $location->url());
 
-            if (!is_null($location->priority())) {
-                $xml->writeElement('priority', $location->priority()->value());
+            if (!is_null($location->lastModified())) {
+                $xml->writeElement('lastmod', $location->lastModified()->format($this->dateFormat));
             }
 
             if (!is_null($location->changeFrequency())) {
                 $xml->writeElement('changefreq', $location->changeFrequency()->value());
             }
 
-            if (!is_null($location->lastModified())) {
-                $xml->writeElement('lastmod', $location->lastModified()->format($this->dateFormat));
+            if (!is_null($location->priority())) {
+                $xml->writeElement('priority', (string)$location->priority()->value());
             }
 
             $xml->endElement();

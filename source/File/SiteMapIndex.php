@@ -17,4 +17,11 @@ class SiteMapIndex implements Contract\File
 
         return $this;
     }
+
+    public function changeCount(int $count): self
+    {
+        $this->linksCount = $count;
+
+        return $this;
+    }
 }

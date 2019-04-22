@@ -52,15 +52,26 @@ class GZip implements Contract\Processor
         return $name;
     }
 
-    public function apply(Iterator $items, string $group): Generator
+    public function apply(Iterator $items): Generator
     {
         /** @var Contract\File $item */
         foreach ($items as $item) {
+
+            if($this->isCompressed($item)){ // lets be sure that we do not compress twice same file
+                yield $item;
+                continue;
+            }
+
             $name = $this->compress($item, $this->compressionLevel);
             // delete old file
             unlink($item->fullPath());
 
             yield $item->changeName($name);
         }
+    }
+
+    protected function isCompressed(Contract\File $file): bool
+    {
+        return substr($file->name(), -3) === '.gz'; // @todo find better solution :D
     }
 }

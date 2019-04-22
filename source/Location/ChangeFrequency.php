@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Robier\SiteMaps\Location;
 
 use InvalidArgumentException;
+use ReflectionClass;
 
 /**
  * Class ChangeFrequency
@@ -21,16 +22,30 @@ class ChangeFrequency
 
     protected $value;
 
+    protected static $cache;
+
     public function __construct(string $type)
     {
+        static::cache();
+
+        $type = strtolower($type);
+
         $this->validate($type);
 
         $this->value = $type;
     }
 
+    protected static function cache()
+    {
+        if (static::$cache === null) {
+            $reflection = new ReflectionClass(static::class);
+            static::$cache = array_values($reflection->getConstants());
+        }
+    }
+
     protected function validate(string $type): void
     {
-        if (!defined(sprintf('%s::%s', static::class, strtoupper($type)))) {
+        if (!in_array($type, static::$cache)) {
             throw new InvalidArgumentException(sprintf('Invalid change frequency type %s', $type));
         }
     }
@@ -78,5 +93,12 @@ class ChangeFrequency
     public function value(): string
     {
         return $this->value;
+    }
+
+    public static function all(): array
+    {
+        static::cache();
+
+        return static::$cache;
     }
 }

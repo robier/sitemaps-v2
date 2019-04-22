@@ -38,11 +38,11 @@ abstract class Base implements Contract\Type
     public function write(Path $data, string $group, Iterator $links): Iterator
     {
         $index = 0;
-        $chunks = $this->chunk($links);
-
         $fullPath = $this->path($data->path(), $group, $index);
 
-        foreach ($chunks->file($fullPath) as $chunk) {
+        $chunks = $this->chunk($links, $fullPath);
+
+        foreach ($chunks as $chunk) {
             $linkCount = $this->generateFile($fullPath, $group, $chunk);
             yield new SiteMap($linkCount, $group, new Path(dirname($fullPath), $data->url()), basename($fullPath));
 

@@ -7,13 +7,15 @@ namespace Robier\SiteMaps\Processor;
 use Generator;
 use Iterator;
 use Robier\SiteMaps\Common;
-use Robier\SiteMaps\File;
 use Robier\SiteMaps\Contract;
+use Robier\SiteMaps\File;
 use Robier\SiteMaps\Path;
 
 class IndexFile implements Contract\Processor
 {
-    use Common\PathTrait;
+    use Common\PathTrait {
+        path as protected traitPath;
+    }
     use Common\ChunkTrait;
     use Common\XMLTrait;
 
@@ -26,31 +28,32 @@ class IndexFile implements Contract\Processor
     protected $forceSiteMapIndexes;
     protected $indent;
     protected $dateFormat;
-    protected $suffix;
+    protected $name;
     protected $pathData;
+    protected $styleSheet;
 
-    public function __construct(Path $data, string $suffix = '-index', string $dateFormat = 'Y-m-d', bool $indent = true)
+    public function __construct(Path $path, string $name, string $dateFormat = 'Y-m-d', bool $indent = true, string $styleSheet = null)
     {
-        $this->pathData = $data;
-        $this->indent = $indent;
+        $this->pathData = $path;
+        $this->name = $name;
         $this->dateFormat = $dateFormat;
-        $this->suffix = $suffix;
+        $this->indent = $indent;
+        $this->styleSheet = $styleSheet;
     }
 
     protected function generateSiteMapIndex(string $path, \Iterator $siteMaps): Generator
     {
-        $xml = $this->XMLOpen($path, $this->indent);
+        $xml = $this->XMLOpen($path, $this->indent, $this->styleSheet);
 
-        $xml->startElement('SiteMapIndexContract');
+        $xml->startElement('sitemapindex');
         $xml->writeAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
 
         /** @var File\SiteMap $siteMap */
         $count = 0;
         foreach ($siteMaps as $siteMap) {
-            $siteMap->changeSiteMapIndexFlag(true);
             yield $siteMap;
 
-            $xml->startElement('url');
+            $xml->startElement('sitemap');
             $xml->writeElement('loc', $siteMap->fullUrl());
 
             if ($siteMap->lastModified()) {
@@ -81,23 +84,36 @@ class IndexFile implements Contract\Processor
         return static::MAX_FILE_SIZE;
     }
 
-    public function apply(Iterator $items, string $group): Generator
+    public function apply(Iterator $items): Generator
     {
-        $siteMaps = $this->chunk($items);
-
         $index = 0;
-        $path = $this->path($this->pathData->path(), $group . $this->suffix, $index);
+        $path = $this->path($index);
 
-        foreach ($siteMaps->file($path) as $links) {
-            $generator = $this->generateSiteMapIndex($path, $links);
-            yield from $generator; // provide all siteMap files
-            yield new File\SiteMapIndex(
-                $generator->getReturn(),
+        $siteMaps = $this->chunk($items, $path);
+
+        foreach ($siteMaps as $links) {
+
+            $indexFile = new File\SiteMapIndex(
+                0,
                 new Path(dirname($path), $this->pathData->url()),
                 basename($path)
             );
 
+            $generator = $this->generateSiteMapIndex($path, $links);
+            /** @var File\SiteMap $siteMap */
+            foreach ($generator as $siteMap) {
+                yield $siteMap->changeIndex($indexFile);
+            }
+
+            yield $indexFile->changeCount((int)$generator->getReturn());
+
             ++$index;
+            $path = $this->path($index);
         }
+    }
+
+    protected function path(int $index): string
+    {
+        return $this->traitPath($this->pathData->path(), sprintf('%s-%s', $this->name, static::SUFFIX), $index);
     }
 }

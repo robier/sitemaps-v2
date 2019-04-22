@@ -11,8 +11,6 @@ trait FileTrait
     protected $path;
     protected $name;
 
-    protected $hasSiteMapIndex = false;
-
     protected $linksCount;
 
     public function __construct(int $linksCount, Path $path, string $name)
@@ -45,11 +43,6 @@ trait FileTrait
     public function url(): string
     {
         return $this->path->url();
-    }
-
-    public function hasSiteMapIndex(): bool
-    {
-        return $this->hasSiteMapIndex;
     }
 
     public function count(): int

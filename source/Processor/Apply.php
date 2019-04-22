@@ -1,48 +1,43 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Robier\SiteMaps\Processor;
 
 use Generator;
 use Iterator;
+use Robier\SiteMaps\Common\MultiProcessorTrait;
 use Robier\SiteMaps\Contract;
 
-class Apply implements Contract\Processor
+abstract class Apply implements Contract\Processor
 {
-    protected $test;
-    protected $processors;
+    use MultiProcessorTrait;
 
-    protected $cache;
-
-    public function __construct(callable $test, Contract\Processor $processor, Contract\Processor ...$processors)
+    public function apply(Iterator $items): Generator
     {
-        $this->test = $test;
-        array_unshift($processors, $processor);
-        $this->processors = $processors;
-    }
+        $group = [];
 
-    public function apply(Iterator $items, string $group): Generator
-    {
-        /** @var Contract\File $item */
         foreach($items as $item){
 
-            $outcome = call_user_func($this->test, $item, $group);
-
-            if($outcome === false){
+            if(!$this->validate($item)){
                 yield $item;
                 continue;
             }
 
-            /** @var Contract\Processor $processor */
-            foreach ($this->processors as $processor){
-                yield from $processor->apply($this->yield($item), $group);
-            }
+            $group[] = $item;
         }
+
+        $generator = $this->yield($group);
+
+        foreach($this->processors as $processor){
+            $generator = $processor->apply($generator);
+        }
+
+        yield from $generator;
     }
 
-    protected function yield(Contract\File $file): Generator
+    protected function yield(array $items): Generator
     {
-        yield $file;
+        yield from $items;
     }
+
+    protected abstract function validate(Contract\File $file): bool;
 }

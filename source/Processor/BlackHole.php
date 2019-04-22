@@ -10,7 +10,7 @@ use Robier\SiteMaps\Contract;
 
 class BlackHole implements Contract\Processor
 {
-    public function apply(Iterator $items, string $group): Generator
+    public function apply(Iterator $items): Generator
     {
         /** @var Contract\File $item */
         foreach($items as $item){

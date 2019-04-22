@@ -107,6 +107,8 @@ class Generator implements \IteratorAggregate
             throw new \LogicException('Can not generate sitemaps as no data is provided');
         }
 
+        $generators = [];
+
         foreach ($this->dataProviders as $group => $data) {
 
             /** @var Contract\DataProvider $dataProvider */
@@ -116,17 +118,26 @@ class Generator implements \IteratorAggregate
 
             /** @var Contract\Middleware $middleware */
             foreach ($data['middleware'] as $middleware) {
-                $generator = $middleware->apply($generator, $group);
+                $generator = $middleware->apply($generator);
             }
 
-            $generator = $this->resolveWriter($generator, $group);
+            $generators[] = $this->resolveWriter($generator, $group);
+        }
 
-            /** @var Contract\Processor $processor */
-            foreach ($this->processors as $processor) {
-                $generator = $processor->apply($generator, $group);
-            }
+        $leveledGenerators = $this->levelGenerators(...$generators);
 
-            yield from $generator;
+        /** @var Contract\Processor $processor */
+        foreach ($this->processors as $processor) {
+            $leveledGenerators = $processor->apply($leveledGenerators);
+        }
+
+        yield from $leveledGenerators;
+    }
+
+    protected function levelGenerators(iterable ...$iterators): \Generator
+    {
+        foreach ($iterators as $iterator) {
+            yield from $iterator;
         }
     }
 
